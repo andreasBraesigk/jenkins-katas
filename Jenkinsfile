@@ -28,8 +28,10 @@ pipeline {
             }
 
           }
+          options {
+            skipDefaultCheckout(true)
+          }
           steps {
-            skipDefaultCheckout true
             unstash 'code'
             sh 'ci/build-app.sh'
             archiveArtifacts 'app/build/libs/'
