@@ -1,8 +1,5 @@
 pipeline {
   agent any
-  environment { 
-        docker_username = 'andreasbraesigk'
-  }
   stages {
     stage('clone down') {
       steps {
@@ -14,29 +11,31 @@ pipeline {
     stage('Test and build') {
       parallel {
         stage('test app') {
-          options {
-            skipDefaultCheckout(true)
-          }
           agent {
             docker {
               image 'gradle:jdk11'
             }
+
+          }
+          options {
+            skipDefaultCheckout(true)
           }
           steps {
             unstash 'code'
             sh 'ci/unit-test-app.sh'
             junit 'app/build/test-results/test/TEST-*.xml'
-            stash(excludes: '.git', name: 'code')
           }
         }
+
         stage('build app') {
-          options {
-            skipDefaultCheckout(true)
-          }
           agent {
             docker {
               image 'gradle:jdk11'
             }
+
+          }
+          options {
+            skipDefaultCheckout(true)
           }
           steps {
             unstash 'code'
@@ -45,8 +44,10 @@ pipeline {
             stash(excludes: '.git', name: 'code')
           }
         }
+
       }
     }
+
     stage('build docker') {
       options {
         skipDefaultCheckout(true)
@@ -56,12 +57,13 @@ pipeline {
         sh 'ci/build-docker.sh'
       }
     }
+
     stage('push docker') {
-      options {
-        skipDefaultCheckout(true)
-      }
       environment {
         DOCKERCREDS = credentials('docker_login')
+      }
+      options {
+        skipDefaultCheckout(true)
       }
       steps {
         unstash 'code'
@@ -69,6 +71,7 @@ pipeline {
         sh 'ci/push-docker.sh'
       }
     }
+
     stage('component test') {
       options {
         skipDefaultCheckout(true)
@@ -80,5 +83,7 @@ pipeline {
     }
 
   }
-  
+  environment {
+    docker_username = 'andreasbraesigk'
+  }
 }
